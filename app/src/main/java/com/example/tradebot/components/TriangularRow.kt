@@ -1,0 +1,184 @@
+package com.example.tradebot.components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.example.tradebot.model.TriangularPath
+import com.example.tradebot.model.TriangularPathItem
+import io.socket.client.Socket
+
+@Composable
+fun TriangularRow(triangularPath:TriangularPath = TriangularPath("1","2", listOf(TriangularPathItem("","USDT_USDC","USDT","/usdt.png","USDC","/usdc.png"),TriangularPathItem("","USDT_USDC","USDT","/usdt.png","USDC","/usdc.png"),TriangularPathItem("","USDT_USDC","USDT","/usdt.png","USDC","/usdc.png")),"SUSHISWAP","SUSHISWAP","SUSHISWAP",
+    listOf()
+),msocket : Socket, onClick: (triangle : TriangularPath) -> Unit){
+
+    val percentage : MutableState<String> = remember { mutableStateOf("-") }
+    msocket.on("triangularArbitrage${triangularPath.ID}") { args ->
+        if (args[0] != null && args[1] != null) {
+            val amountIn = args[0] as String
+            val amountOut = args[3] as String
+            percentage.value = percentage(amountIn,amountOut)
+        }
+    }
+    Box(
+        modifier = Modifier
+            .padding(20.dp)
+            .width(250.dp)
+            .height(250.dp)
+            .clickable {
+                onClick(triangularPath)
+            }
+            .background(color = Color(0xFF1F1F1F), shape = RoundedCornerShape(25.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                modifier = Modifier.padding(bottom = 10.dp),
+                text = triangularPath.tiangularPath[0].NAME,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF9C27B0),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[0].TOKEN0IMAGE)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    //contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(width = 25.dp, height = 25.dp)
+
+                )
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[0].TOKEN1IMAGE)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
+                    //contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(width = 25.dp, height = 25.dp)
+
+                )
+            }
+            Spacer(modifier = Modifier.padding(vertical = 10.dp))
+            Text(text = percentage.value,modifier = Modifier.padding(vertical = 10.dp),style = MaterialTheme.typography.bodyMedium,
+                color = if (percentage.value[0] == '-'){Color.Red}else {
+                    Color.Green
+                },
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.padding(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        text = triangularPath.tiangularPath[1].NAME,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF9C27B0),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[1].TOKEN0IMAGE)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            //contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(width = 25.dp, height = 25.dp)
+
+                        )
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[1].TOKEN1IMAGE)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            //contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(width = 25.dp, height = 25.dp)
+
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.padding(10.dp))
+                Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 10.dp),
+                        text = triangularPath.tiangularPath[2].NAME,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF9C27B0),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[2].TOKEN0IMAGE)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            //contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(width = 25.dp, height = 25.dp)
+
+                        )
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data("http://192.168.0.68:8080" + triangularPath.tiangularPath[2].TOKEN1IMAGE)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            //contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(width = 25.dp, height = 25.dp)
+
+                        )
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+fun PreviewTriangularRow(){
+
+}
+
+
